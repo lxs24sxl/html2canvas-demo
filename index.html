@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>分享图导出</title>
+    <meta name="viewport"
+        content="width=device-width, minimum-scale=1.0, maximum-scale=1.0, initial-scale=1.0, user-scalable=no">
+    <style>
+        * {
+            margin: 0;
+        }
+
+        html,
+        body {
+            overflow: hidden;
+        }
+
+        #capture {
+            width: 100vw;
+            background-color: #fff;
+        }
+
+        #capture .capture-img {
+            width: 100%;
+        }
+
+        #capture .capture-img img {
+            width: 100%;
+            height: 100%;
+        }
+
+        #capture .capture-content {
+            padding: 10px;
+            display: flex;
+        }
+
+        #capture .capture-content .capture-content-left {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        #capture .capture-content .capture-content-right {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+
+        }
+
+        .capture-content-right img {
+            width: 80px;
+            height: 80px;
+            margin: 0 10px;
+        }
+
+        .capture-content-right span {
+            font-size: 12px;
+            margin-top: 5px;
+            color: #666;
+        }
+
+
+        .capture-content-left .capture-content-left__title {
+            width: 100%;
+            font-size: 14px;
+            /* display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            text-overflow: ellipsis; */
+        }
+
+        .capture-content-left .capture-content-left__source {
+            text-decoration: line-through;
+            font-size: 10px;
+            color: #999;
+        }
+
+        .capture-content-left .capture-content-left__price {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .capture-content-left .capture-content-left__price .red {
+            color: #FF0033;
+            font-size: 18px;
+        }
+
+        /* #down */
+        canvas {
+            visibility: hidden;
+        }
+
+        .capture-content-left__coupon {
+            display: flex;
+            overflow: hidden;
+            border-radius: 4px;
+            margin: 2px 0;
+        }
+
+        .capture-content-left__coupon .coupon-left {
+            float: left;
+            width: 20px;
+            height: 20px;
+            position: relative;
+            background: #CC0033;
+            color: #fff;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .capture-content-left__coupon .coupon-line {
+            position: relative;
+            flex: 0 0 0;
+        }
+
+        .capture-content-left__coupon .coupon-line:before,
+        .capture-content-left__coupon .coupon-line:after {
+            content: '';
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            background: #fff;
+            left: -4px;
+            z-index: 1;
+            border: 1px solid #cc0033;
+        }
+
+        .capture-content-left__coupon .coupon-line:before {
+            border-radius: 4px;
+            top: -4px;
+        }
+
+        .capture-content-left__coupon .coupon-line:after {
+            border-radius: 4px;
+            bottom: -4px;
+        }
+
+        .capture-content-left__coupon .coupon-con {
+            float: left;
+            width: 40px;
+            height: 18px;
+            position: relative;
+            background: rgb(248, 229, 233);
+            border: 1px solid #CC0033;
+            color: #cc0033;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 13px;
+        }
+    </style>
+    <link rel="stylesheet" href="http://i.gtimg.cn/vipstyle/frozenui/2.0.0/css/frozen.css">
+</head>
+
+<body>
+    <div id="capture" class="capture">
+        <!-- 主图 -->
+        <div class="capture-img">
+            <img src="./test.png" alt="">
+        </div>
+        <div class="capture-content">
+            <div class="capture-content-left">
+                <!-- 标题 -->
+                <div class="capture-content-left__title">
+                    【领卷直降】欧莱雅活能密集补水保湿套装化妆品套装礼盒女士护肤品洁面乳测试测试测试</div>
+                <!-- 优惠券 -->
+                <div class="capture-content-left__coupon">
+                    <div class="coupon-left">券</div>
+                    <div class="coupon-line"></div>
+                    <div class="coupon-con">¥ 50</div>
+                </div>
+                <!-- 原价 -->
+                <div class="capture-content-left__source">¥171.00</div>
+                <!-- 券后价 -->
+                <div class="capture-content-left__price">券后价: <span class="red">¥129.00</span></div>
+            </div>
+            <!-- 二维码 -->
+            <div class="capture-content-right">
+                <img src="./test.png">
+                <span>长按识别二维码</span>
+            </div>
+        </div>
+    </div>
+    <a id="down" class="ui-btn" download="downloadImg">导出图片</a>
+
+    <script src="./html2canvas.min.js"></script>
+    <script>
+        let nameList = []
+        //多余显示省略号
+        function wordlimit(className, wordlength) {
+            let cname = document.getElementsByClassName(className);
+
+            for (let i = 0; i < cname.length; i++) {
+                let nowLength = cname[i].innerHTML.length;
+                let isExist = nameList.find(item => item.index === i)
+                if (!isExist) {
+                    nameList.push({
+                        index: i,
+                        text: cname[i].innerHTML.trim()
+                    })
+                }
+
+                let oNameList = JSON.parse(JSON.stringify(nameList))
+                if (nowLength > wordlength) {
+                    cname[i].innerHTML = oNameList[i].text.substr(0, wordlength) + '...';
+                } else {
+                    cname[i].innerHTML = oNameList[i].text
+                }
+            }
+        };
+
+        // 设定显示规则
+        function reloadTitle(className) {
+            let w = document.getElementsByClassName(className)[0].offsetWidth
+            let p = 18 / 255;
+            let num = (Math.floor(p * +w) * 2) - 1;
+            wordlimit(className, num)
+        }
+
+        // 初始化
+        reloadTitle("capture-content-left__title")
+        // 改变屏幕宽度时，重新修改
+        window.onresize = function () {
+            reloadTitle("capture-content-left__title")
+        }
+
+        //base64转blob
+        function base64ToBlob(code) {
+            let parts = code.split(';base64,');
+            let contentType = parts[0].split(':')[1];
+            let raw = window.atob(parts[1]);
+            let rawLength = raw.length;
+
+            let uInt8Array = new Uint8Array(rawLength);
+
+            for (let i = 0; i < rawLength; ++i) {
+                uInt8Array[i] = raw.charCodeAt(i);
+            }
+            return new Blob([uInt8Array], { type: contentType });
+        }
+
+        // 下载文件
+        function downloadFile(fileName, content) {
+            let aLink = document.createElement('a');
+            let blob = base64ToBlob(content); //new Blob([content]);
+
+            let evt = document.createEvent("HTMLEvents");
+            evt.initEvent("click", true, true);//initEvent 不加后两个参数在FF下会报错  事件类型，是否冒泡，是否阻止浏览器的默认行为
+            aLink.download = fileName;
+            aLink.href = URL.createObjectURL(blob);
+
+            aLink.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true, view: window }));//兼容火狐
+        }
+
+        window.onload = function () {
+            html2canvas(document.querySelector("#capture"), {
+                useCORS: true,
+                logging: false,
+                proxy: true,
+                allowTaint: true
+            }).then(canvas => {
+                document.body.appendChild(canvas);
+                downloadFile('image.png', canvas.toDataURL("image/png"))
+            });
+        }
+
+    </script>
+</body>
+
+</html>
